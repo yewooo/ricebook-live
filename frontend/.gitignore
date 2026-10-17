@@ -1,0 +1,20 @@
+# Node / Angular
+node_modules/
+.angular/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Misc
+*.zip
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Angular cache
+.angular/cache/
+
+# Local env
+.env

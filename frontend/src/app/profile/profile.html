@@ -1,0 +1,78 @@
+<nav class="navbar bg-white shadow-sm sticky-top">
+  <div class="container">
+    <a class="navbar-brand fw-semibold" routerLink="/main">RiceBook Live</a>
+    <div class="ms-auto">
+      <a class="btn btn-outline-secondary" routerLink="/main">← Back to Main</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container my-4" style="max-width:980px;" *ngIf="S.currentUser() as u">
+  <div class="card shadow-sm" style="border-radius:1rem;">
+    <div class="card-body">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <img *ngIf="avatarPreview || u.avatarUrl" [src]="avatarPreview || u.avatarUrl"
+             class="rounded-circle"
+             width="96"
+             height="96"
+             alt="">
+        <div>
+          <h4 class="mb-1">@{{u.username}}</h4>
+          <div class="text-secondary">Profile</div>
+        </div>
+      </div>
+
+      <!-- 当前值（展示用） -->
+      <div class="row g-3 mb-4 text-secondary small">
+        <div class="col-md-4"><strong>Email:</strong> {{ u.email }}</div>
+        <div class="col-md-4"><strong>Phone:</strong> {{ u.phone }}</div>
+        <div class="col-md-4"><strong>Zipcode:</strong> {{ u.zipcode }}</div>
+      </div>
+
+      <!-- 更新表单 -->
+      <form class="row g-3" (ngSubmit)="update()" novalidate>
+        <div class="col-md-6">
+          <label class="form-label" for="profile-email">Email</label>
+          <input class="form-control" [(ngModel)]="email" name="email" id="profile-email" placeholder="email@example.com">
+          <div class="text-danger small mt-1" *ngIf="errEmail">{{errEmail}}</div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label" for="profile-phone">Phone</label>
+          <input class="form-control" [(ngModel)]="phone" name="phone" id="profile-phone" placeholder="1234567890">
+          <div class="text-danger small mt-1" *ngIf="errPhone">{{errPhone}}</div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label" for="profile-zipcode">Zipcode</label>
+          <input class="form-control" [(ngModel)]="zipcode" name="zipcode" id="profile-zipcode" placeholder="77005">
+          <div class="text-danger small mt-1" *ngIf="errZip">{{errZip}}</div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label" for="profile-password">Password</label>
+          <input type="password" class="form-control" [(ngModel)]="password" name="password" id="profile-password" placeholder="••••••">
+          <div class="text-danger small" *ngIf="errPassword">{{ errPassword }}</div>
+          <div class="form-text">Use 8–128 characters. Changing your password signs out all sessions.</div>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">Profile picture</label>
+          <input type="file"
+                 class="form-control"
+                 accept="image/png,image/jpeg,image/webp,image/gif"
+                 (change)="onAvatarSelected($event)">
+          <div class="form-text">PNG, JPEG, WebP or GIF, up to 500KB.</div>
+          <div class="text-danger small mt-1" *ngIf="avatarErr">{{avatarErr}}</div>
+        </div>
+
+        <div class="col-12 d-flex gap-2">
+          <button class="btn btn-primary" type="submit" [disabled]="busy()">{{busy() ? 'Saving…' : 'Update'}}</button>
+          <a class="btn btn-outline-secondary" routerLink="/main">Back</a>
+        </div>
+
+        <div class="text-success small mt-2" *ngIf="okMsg">{{okMsg}}</div>
+      </form>
+    </div>
+  </div>
+</div>

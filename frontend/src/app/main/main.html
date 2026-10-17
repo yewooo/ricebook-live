@@ -1,0 +1,169 @@
+<!-- src/app/main/main.html -->
+<div class="container my-4">
+  <!-- 顶部导航 -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Main Feed</h3>
+    <div class="d-flex gap-2">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Search..."
+        [(ngModel)]="searchText"
+      />
+      <a routerLink="/chat" class="btn btn-primary">Chat rooms</a>
+      <a routerLink="/profile" class="btn btn-outline-primary">Profile</a>
+      <button class="btn btn-outline-danger" (click)="logout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- 发布新文章 -->
+  <div class="card mb-4 p-3">
+    <textarea
+      class="form-control mb-2"
+      rows="3"
+      placeholder="Write a new article..."
+      [(ngModel)]="newPostText"
+    ></textarea>
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary" (click)="addPost()">Post</button>
+      <button class="btn btn-secondary" (click)="clearPost()">Cancel</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- 主体文章区 -->
+    <div class="col-lg-8">
+      <div *ngFor="let a of filtered()" class="card mb-3 shadow-sm">
+        <div class="card-body">
+          <h5>{{ a.authorName }}</h5>
+          <p class="text-muted small">{{ a.timestamp }}</p>
+          <p>{{ a.body }}</p>
+          <img
+            *ngIf="a.image"
+            [src]="a.image"
+            class="img-fluid rounded mb-2"
+          />
+
+          <div class="d-flex gap-2">
+            <a [routerLink]="['/chat']" [queryParams]="{post: a.id}" class="btn btn-primary btn-sm">Discuss in a room</a>
+            <button
+              class="btn btn-outline-secondary btn-sm"
+              (click)="toggleComments(a.id)"
+            >
+              {{ expanded.has(a.id) ? 'Hide' : 'Show' }} Comments
+            </button>
+          </div>
+
+          <!-- 评论展示块 -->
+          <div *ngIf="expanded.has(a.id)" class="mt-2">
+            <!-- 还没加载出数组时 -->
+            <div *ngIf="!commentsMap.get(a.id)" class="text-muted small">
+              Loading comments...
+            </div>
+
+            <!-- 已加载但为空 -->
+            <div
+              *ngIf="commentsMap.get(a.id)?.length === 0"
+              class="text-muted small"
+            >
+              No comments yet.
+            </div>
+
+            <!-- 评论列表 -->
+            <div
+              *ngFor="let c of commentsMap.get(a.id) ?? []"
+              class="border rounded p-2 mb-2"
+            >
+              <div class="fw-semibold small">
+                {{ c.name }}
+                <span class="text-muted" *ngIf="c.email">
+                  · {{ c.email }}
+                </span>
+              </div>
+              <div class="small">
+                {{ c.body }}
+              </div>
+            </div>
+
+            <!-- 新增评论输入框 -->
+            <div class="input-group input-group-sm mt-2">
+              <input
+                class="form-control"
+                placeholder="Add a comment..."
+                [(ngModel)]="newComments[a.id]"
+              />
+              <button
+                class="btn btn-primary"
+                (click)="submitComment(a.id)"
+              >
+                Comment
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 侧边栏 -->
+    <div class="col-lg-4">
+      <div class="card p-3">
+        <h5>Your Profile</h5>
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <img
+            *ngIf="S.currentUser()?.avatarUrl" [src]="S.currentUser()?.avatarUrl"
+            width="60"
+            height="60"
+            class="rounded-circle"
+          />
+          <div>
+            <strong>{{ S.currentUser()?.name }}</strong><br />
+            <small>{{ headlineText }}</small><br />
+            <input
+              class="form-control form-control-sm mt-1"
+              [(ngModel)]="headlineText"
+            />
+          </div>
+        </div>
+        <button
+          class="btn btn-sm btn-outline-primary mb-3"
+          (click)="S.updateHeadline(headlineText)"
+        >
+          Update Headline
+        </button>
+
+        <hr />
+        <h6>Following</h6>
+
+        <!-- f 是用户名字符串 -->
+        <div
+          *ngFor="let f of S.following(); let i = index"
+          class="d-flex justify-content-between align-items-center mb-2"
+        >
+          <div class="d-flex align-items-center gap-2">
+            <span class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px" aria-hidden="true">{{ f.slice(0,2).toUpperCase() }}</span>
+            <div>
+              <strong>{{ f }}</strong><br />
+              <small class="text-muted">@{{ f }}</small>
+            </div>
+          </div>
+          <button
+            class="btn btn-sm btn-outline-danger"
+            (click)="unfollow(i)"
+          >
+            Unfollow
+          </button>
+        </div>
+
+        <div class="input-group mt-3">
+          <input class="form-control" placeholder="Add user..." #newFollower />
+          <button
+            class="btn btn-outline-success"
+            (click)="addFollower(newFollower.value); newFollower.value = ''"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

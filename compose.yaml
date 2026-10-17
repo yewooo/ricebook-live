@@ -1,0 +1,9 @@
+services:
+  mongo:
+    image: mongo:7
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - ricebook-data:/data/db
+volumes:
+  ricebook-data:

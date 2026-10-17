@@ -1,0 +1,42 @@
+<div class="chat-shell">
+  <header class="topbar">
+    <a routerLink="/main" class="brand">RiceBook<span>Live</span></a>
+    <nav aria-label="Main navigation"><a routerLink="/main">Feed</a><a routerLink="/chat" aria-current="page">Chat rooms</a><a routerLink="/profile">Profile</a></nav>
+    <span class="account">{{ S.currentUser()?.username }}</span>
+  </header>
+  <div class="chat-heading"><div><h1>Your conversations</h1><p>Turn a shared idea into something worth building.</p></div><span class="connection" [class.connected]="C.status() === 'Connected'">● {{ C.status() }}</span></div>
+  <div *ngIf="C.error()" role="alert" class="alert alert-danger">{{ C.error() }} <button class="btn btn-sm btn-outline-danger" (click)="C.error.set('')">Dismiss</button></div>
+  <div *ngIf="notice()" role="status" class="alert alert-success">{{ notice() }}</div>
+  <div *ngIf="postId" class="post-context"><strong>Discuss post #{{ postId }}</strong><span>Create a room or open one below, then share this post.</span><button *ngIf="C.active()" (click)="share()" class="btn btn-primary btn-sm">Share post here</button></div>
+  <div class="workspace">
+    <aside class="rooms-panel">
+      <div class="panel-title"><h2>Rooms</h2><button class="btn btn-sm btn-light" (click)="refresh()" aria-label="Refresh rooms">↻</button></div>
+      <p class="small text-muted">Public spaces and your private invitations.</p>
+      <div class="room-list">
+        <button *ngFor="let room of C.rooms()" class="room-row" [class.selected]="C.active()?._id === room._id" [disabled]="busy()" (click)="open(room)">
+          <span class="room-symbol">{{ room.isPublic ? '#' : '⌑' }}</span><span><strong>{{ room.name }}</strong><small>{{ room.invited && !room.joined ? 'Invitation · join room' : room.members.length + ' members · ' + (room.isPublic ? 'Public' : 'Private') }}</small></span>
+        </button>
+        <p *ngIf="!C.rooms().length" class="empty-small">No rooms yet. Create the first one.</p>
+      </div>
+      <form class="create-form" (ngSubmit)="create()"><h3>Start a conversation</h3><label for="room-name">Room name</label><input id="room-name" name="roomName" [(ngModel)]="roomName" maxlength="60" required placeholder="e.g. Hackathon team" class="form-control"><label class="check"><input type="checkbox" name="isPublic" [(ngModel)]="isPublic"> Public — anyone can join</label><button class="btn btn-primary w-100" [disabled]="busy() || !roomName.trim()">Create room</button></form>
+    </aside>
+    <section class="conversation" aria-label="Conversation">
+      <ng-container *ngIf="C.active() as room; else welcome">
+        <div class="conversation-header"><div><h2><span>#</span> {{ room.name }}</h2><small>{{ room.isPublic ? 'Public room' : 'Private room' }} · Owner: {{ room.owner }}</small></div><span>{{ C.online().length }} online</span></div>
+        <div class="messages" aria-live="polite" aria-relevant="additions" role="log" aria-label="Room messages">
+          <button *ngIf="C.hasMore()" class="btn btn-sm btn-light" (click)="older()">Load older messages</button>
+          <p *ngIf="busy()" class="empty-small">Loading conversation…</p>
+          <p *ngIf="!busy() && !C.messages().length" class="empty-small">The start of something good. Say hello.</p>
+          <article *ngFor="let message of C.messages(); trackBy: trackMessage" class="message" [class.own]="message.sender === S.currentUser()?.username">
+            <span class="avatar">{{ initials(message.sender) }}</span><div class="message-content"><div class="message-meta"><strong>{{ message.sender }}</strong><time>{{ message.createdAt | date:'MMM d, h:mm a' }}</time></div><div *ngIf="message.postId" class="shared-label">Shared post #{{ message.postId }}</div><p>{{ message.text }}</p></div>
+          </article>
+        </div>
+        <div class="typing" aria-live="polite">{{ C.typing() ? C.typing() + ' is typing…' : '' }}</div>
+        <form class="message-form" (ngSubmit)="send()"><label class="visually-hidden" for="message-draft">Message</label><input id="message-draft" class="form-control" name="draft" [(ngModel)]="draft" (input)="C.notifyTyping()" maxlength="2000" placeholder="Write a message…" autocomplete="off"><button class="btn btn-primary" [disabled]="!draft.trim() || sending() || busy() || C.status() !== 'Connected'">{{ sending() ? 'Sending…' : 'Send' }}</button></form>
+        <div class="delivery-note">Messages are saved before delivery. Reconnect to recover conversation history.</div>
+      </ng-container>
+      <ng-template #welcome><div class="welcome"><span class="welcome-symbol">↗</span><h2>A little less scrolling.<br>A little more connecting.</h2><p>Choose a room to join the conversation, or create a space for your next project.</p><a routerLink="/main" class="btn btn-outline-primary">Explore the feed</a></div></ng-template>
+    </section>
+    <aside class="details-panel" *ngIf="C.active() as room"><h2>In this room</h2><p class="small text-muted">{{ room.members.length }} members</p><div *ngFor="let member of room.members" class="member"><span class="avatar">{{ initials(member) }}</span><div><strong>{{ member }}</strong><small>{{ C.online().includes(member) ? '● Online' : 'Offline' }}{{ room.owner === member ? ' · Owner' : '' }}</small></div><button *ngIf="room.owner === S.currentUser()?.username && member !== room.owner" class="remove" (click)="remove(member)" [attr.aria-label]="'Remove ' + member">×</button></div><form *ngIf="room.owner === S.currentUser()?.username" (ngSubmit)="invite()" class="invite-form"><h3>Invite someone</h3><label for="invite-user">Existing username</label><input id="invite-user" name="inviteName" [(ngModel)]="inviteName" class="form-control" maxlength="80" placeholder="Username"><button class="btn btn-outline-primary w-100" [disabled]="!inviteName.trim()">Send invitation</button></form><div class="room-about"><h3>Make room for good ideas.</h3><p>Be thoughtful, share your progress, and help each other move forward.</p></div></aside>
+  </div>
+</div>

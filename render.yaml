@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: ricebook-live
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /ready
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: WEB_ROOT
+        value: /app/web
+      - key: TRUST_PROXY
+        value: "1"
+      - key: MONGO_URL
+        sync: false
+      - key: FRONTEND_ORIGIN
+        sync: false

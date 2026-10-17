@@ -1,0 +1,12 @@
+**/node_modules
+**/.angular
+**/dist
+**/coverage
+**/.demo-db
+**/.env
+**/.env.*
+.git
+**/*.zip
+**/*.log
+**/test-results
+**/playwright-report

@@ -1,0 +1,15 @@
+{
+  "verifiedAt": "2026-10-17T07:19:10.686Z",
+  "target": "loopback Docker QA stack, NODE_ENV=production",
+  "checks": {
+    "spaDeepLinks": true,
+    "unauthenticatedApiDenied": true,
+    "secureHttpOnlyCookie": true,
+    "realWebSocketWrite": true,
+    "appRestart": true,
+    "persistedSessionAfterRestart": true,
+    "persistedMessageAfterRestart": true,
+    "loginAfterRestart": true
+  },
+  "cloudDeployed": false
+}

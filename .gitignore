@@ -1,0 +1,15 @@
+node_modules/
+.angular/
+dist/
+coverage/
+.env
+.env.local
+.demo-db/
+playwright-report/
+test-results/
+*.log
+.DS_Store
+
+.idea/
+.env.*
+!.env.example
