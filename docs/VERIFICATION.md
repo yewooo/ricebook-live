@@ -44,3 +44,5 @@ Remaining dependency note: backend and frontend production dependency audits sho
 ## UI consistency update
 
 Login, registration, feed and profile adopt the existing chat palette, typography, navigation and controls. Own chat identity uses the profile display name; authorization still uses the original username. Production build and all 25 Angular tests pass. Existing bundle/style warning budgets remain.
+
+Production styles load with a regular stylesheet link: critical CSS inlining is disabled to avoid Angular emitting an inline onload handler blocked by script-src self. CSP remains unchanged.
