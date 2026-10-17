@@ -1,6 +1,6 @@
 # Deployment runbook
 
-Status: Docker image built locally, production-container smoke test passed, MongoDB Atlas connected and verified; live cloud deployment pending hosting setup.
+Status: Docker image built locally, production-container smoke test passed, MongoDB Atlas connected; Render deployment live at https://ricebook-live.onrender.com. HTTPS readiness, SPA deep links, real Google sign-in, feed posting, realtime messaging and history after refresh verified.
 
 ## Architecture
 
@@ -35,7 +35,7 @@ It uses a named MongoDB volume and binds the app only to loopback. Hosted produc
 5. Deploy, wait for healthy status, and verify the checklist below against the returned URL.
 6. Add Google credentials only when your OAuth app and final callback URI are configured. `render.yaml` supplies the core service template; no deployment has been created by this file alone.
 
-## Live acceptance checks (pending)
+## Live acceptance checklist (extended checks remain)
 
 - HTTPS root and `/main`, `/profile`, `/chat` deep links load the SPA.
 - Register and login through browser; confirm cookie session persists across refresh.

@@ -2,7 +2,7 @@
   <header class="topbar">
     <a routerLink="/main" class="brand">RiceBook<span>Live</span></a>
     <nav aria-label="Main navigation"><a routerLink="/main">Feed</a><a routerLink="/chat" aria-current="page">Chat rooms</a><a routerLink="/profile">Profile</a></nav>
-    <span class="account">{{ S.currentUser()?.username }}</span>
+    <span class="account">{{ S.currentUser()?.name }}</span>
   </header>
   <div class="chat-heading"><div><h1>Your conversations</h1><p>Turn a shared idea into something worth building.</p></div><span class="connection" [class.connected]="C.status() === 'Connected'">● {{ C.status() }}</span></div>
   <div *ngIf="C.error()" role="alert" class="alert alert-danger">{{ C.error() }} <button class="btn btn-sm btn-outline-danger" (click)="C.error.set('')">Dismiss</button></div>
@@ -22,13 +22,13 @@
     </aside>
     <section class="conversation" aria-label="Conversation">
       <ng-container *ngIf="C.active() as room; else welcome">
-        <div class="conversation-header"><div><h2><span>#</span> {{ room.name }}</h2><small>{{ room.isPublic ? 'Public room' : 'Private room' }} · Owner: {{ room.owner }}</small></div><span>{{ C.online().length }} online</span></div>
+        <div class="conversation-header"><div><h2><span>#</span> {{ room.name }}</h2><small>{{ room.isPublic ? 'Public room' : 'Private room' }} · Owner: {{ displayName(room.owner) }}</small></div><span>{{ C.online().length }} online</span></div>
         <div class="messages" aria-live="polite" aria-relevant="additions" role="log" aria-label="Room messages">
           <button *ngIf="C.hasMore()" class="btn btn-sm btn-light" (click)="older()">Load older messages</button>
           <p *ngIf="busy()" class="empty-small">Loading conversation…</p>
           <p *ngIf="!busy() && !C.messages().length" class="empty-small">The start of something good. Say hello.</p>
           <article *ngFor="let message of C.messages(); trackBy: trackMessage" class="message" [class.own]="message.sender === S.currentUser()?.username">
-            <span class="avatar">{{ initials(message.sender) }}</span><div class="message-content"><div class="message-meta"><strong>{{ message.sender }}</strong><time>{{ message.createdAt | date:'MMM d, h:mm a' }}</time></div><div *ngIf="message.postId" class="shared-label">Shared post #{{ message.postId }}</div><p>{{ message.text }}</p></div>
+            <span class="avatar">{{ initials(message.sender) }}</span><div class="message-content"><div class="message-meta"><strong>{{ displayName(message.sender) }}</strong><time>{{ message.createdAt | date:'MMM d, h:mm a' }}</time></div><div *ngIf="message.postId" class="shared-label">Shared post #{{ message.postId }}</div><p>{{ message.text }}</p></div>
           </article>
         </div>
         <div class="typing" aria-live="polite">{{ C.typing() ? C.typing() + ' is typing…' : '' }}</div>
@@ -37,6 +37,6 @@
       </ng-container>
       <ng-template #welcome><div class="welcome"><span class="welcome-symbol">↗</span><h2>A little less scrolling.<br>A little more connecting.</h2><p>Choose a room to join the conversation, or create a space for your next project.</p><a routerLink="/main" class="btn btn-outline-primary">Explore the feed</a></div></ng-template>
     </section>
-    <aside class="details-panel" *ngIf="C.active() as room"><h2>In this room</h2><p class="small text-muted">{{ room.members.length }} members</p><div *ngFor="let member of room.members" class="member"><span class="avatar">{{ initials(member) }}</span><div><strong>{{ member }}</strong><small>{{ C.online().includes(member) ? '● Online' : 'Offline' }}{{ room.owner === member ? ' · Owner' : '' }}</small></div><button *ngIf="room.owner === S.currentUser()?.username && member !== room.owner" class="remove" (click)="remove(member)" [attr.aria-label]="'Remove ' + member">×</button></div><form *ngIf="room.owner === S.currentUser()?.username" (ngSubmit)="invite()" class="invite-form"><h3>Invite someone</h3><label for="invite-user">Existing username</label><input id="invite-user" name="inviteName" [(ngModel)]="inviteName" class="form-control" maxlength="80" placeholder="Username"><button class="btn btn-outline-primary w-100" [disabled]="!inviteName.trim()">Send invitation</button></form><div class="room-about"><h3>Make room for good ideas.</h3><p>Be thoughtful, share your progress, and help each other move forward.</p></div></aside>
+    <aside class="details-panel" *ngIf="C.active() as room"><h2>In this room</h2><p class="small text-muted">{{ room.members.length }} members</p><div *ngFor="let member of room.members" class="member"><span class="avatar">{{ initials(member) }}</span><div><strong>{{ displayName(member) }}</strong><small>{{ C.online().includes(member) ? '● Online' : 'Offline' }}{{ room.owner === member ? ' · Owner' : '' }}</small></div><button *ngIf="room.owner === S.currentUser()?.username && member !== room.owner" class="remove" (click)="remove(member)" [attr.aria-label]="'Remove ' + member">×</button></div><form *ngIf="room.owner === S.currentUser()?.username" (ngSubmit)="invite()" class="invite-form"><h3>Invite someone</h3><label for="invite-user">Existing username</label><input id="invite-user" name="inviteName" [(ngModel)]="inviteName" class="form-control" maxlength="80" placeholder="Username"><button class="btn btn-outline-primary w-100" [disabled]="!inviteName.trim()">Send invitation</button></form><div class="room-about"><h3>Make room for good ideas.</h3><p>Be thoughtful, share your progress, and help each other move forward.</p></div></aside>
   </div>
 </div>

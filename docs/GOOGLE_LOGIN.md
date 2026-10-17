@@ -1,6 +1,6 @@
 # Connect your own Google login
 
-Status: real Google account sign-in has now been verified with the local application connected to MongoDB Atlas: Google consent → application callback → authenticated feed → refresh retains the session → chat route connects. Room creation, message persistence and history recovery after refresh also pass against Atlas. The hosted callback remains unconfigured until a deployment URL is chosen. A new dedicated client was created in the existing comp531-oauth project; its consent screen retains the project branding “COMP531 OAuth Login”. Credentials are stored only in ignored backend/.env, with owner-only file permissions.
+Status: real Google account sign-in has now been verified with the local application connected to MongoDB Atlas: Google consent → application callback → authenticated feed → refresh retains the session → chat route connects. Room creation, message persistence and history recovery after refresh also pass against Atlas. The hosted callback https://ricebook-live.onrender.com/api/auth/google/callback is configured and verified with a real Google account. A new dedicated client was created in the existing comp531-oauth project; its consent screen retains the project branding “COMP531 OAuth Login”. Credentials are stored only in ignored backend/.env, with owner-only file permissions.
 
 ## Local configuration first
 

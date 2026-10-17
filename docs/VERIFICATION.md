@@ -11,9 +11,9 @@
 | Browser workflow | PASS | Login, create post, comment, refresh comment, profile update/refresh, server logout; feed-to-chat sharing/send checked |
 | Responsive chat | PASS | Desktop and 390px layout checked; no horizontal overflow at 390px |
 | Google OAuth protocol | PASS (mock only) | 5 tests of real Passport flow with a local fake provider |
-| Real Google account sign-in | PASS locally | Dedicated client, real consent/callback, session survives refresh and chat connects; hosted callback pending |
+| Real Google account sign-in | PASS locally and hosted | Real Google callback on HTTPS Render URL; authenticated feed and chat; session and history survive refresh |
 | MongoDB Atlas | PASS | Free Cluster0 resumed; scoped application user; backend readiness ping; real Google login, room/message writes and history recovery after browser refresh verified against Atlas |
-| Live cloud deployment | PENDING | Hosting target and hosted OAuth callback required; database is configured |
+| Live cloud deployment | PASS smoke | Render HTTPS, /ready Atlas ping, HTML deep links, real Google login, feed post, realtime send and message recovery after refresh verified |
 | Hosted load / real user traffic | NOT MEASURED | Local results are not production-capacity claims |
 
 ## Regression fixes
@@ -40,3 +40,7 @@ npm run benchmark
 Chrome/Chromium is needed for the Angular unit suite; set `CHROME_BIN` if not discovered. MongoDB test binaries download from the official distribution on first run. Container smoke reproduction is documented in `DEPLOYMENT.md`. No cloud credentials are required for these local checks.
 
 Remaining dependency note: backend and frontend production dependency audits show zero known advisories at the time of verification; the inherited Karma development toolchain reports six high advisories. No public development-server deployment is recommended or claimed. These package advisories are distinct from successful runtime regression results.
+
+## UI consistency update
+
+Login, registration, feed and profile adopt the existing chat palette, typography, navigation and controls. Own chat identity uses the profile display name; authorization still uses the original username. Production build and all 25 Angular tests pass. Existing bundle/style warning budgets remain.

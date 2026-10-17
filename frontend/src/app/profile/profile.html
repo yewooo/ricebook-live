@@ -1,13 +1,4 @@
-<nav class="navbar bg-white shadow-sm sticky-top">
-  <div class="container">
-    <a class="navbar-brand fw-semibold" routerLink="/main">RiceBook Live</a>
-    <div class="ms-auto">
-      <a class="btn btn-outline-secondary" routerLink="/main">← Back to Main</a>
-    </div>
-  </div>
-</nav>
-
-<div class="container my-4" style="max-width:980px;" *ngIf="S.currentUser() as u">
+<div class="site-shell"><header class="site-header"><a class="site-brand" routerLink="/main">RiceBook<span>Live</span></a><nav aria-label="Main navigation"><a routerLink="/main" >Feed</a><a routerLink="/chat">Chat rooms</a><a routerLink="/profile" aria-current="page">Profile</a></nav><div class="site-account"><span>{{ S.currentUser()?.name }}</span></div></header><div class="page-heading"><h1>Your profile</h1><p>A little about you, and how people find you.</p></div><div class="profile-content" *ngIf="S.currentUser() as u">
   <div class="card shadow-sm" style="border-radius:1rem;">
     <div class="card-body">
       <div class="d-flex align-items-center gap-3 mb-3">
@@ -17,8 +8,8 @@
              height="96"
              alt="">
         <div>
-          <h4 class="mb-1">@{{u.username}}</h4>
-          <div class="text-secondary">Profile</div>
+          <h4 class="mb-1">{{u.name}}</h4>
+          <div class="text-secondary">Your account details and preferences</div>
         </div>
       </div>
 
@@ -75,4 +66,5 @@
       </form>
     </div>
   </div>
+</div>
 </div>

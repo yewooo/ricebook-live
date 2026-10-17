@@ -1,27 +1,9 @@
-<!-- src/app/main/main.html -->
-<div class="container my-4">
-  <!-- 顶部导航 -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Main Feed</h3>
-    <div class="d-flex gap-2">
-      <input
-        type="text"
-        class="form-control"
-        placeholder="Search..."
-        [(ngModel)]="searchText"
-      />
-      <a routerLink="/chat" class="btn btn-primary">Chat rooms</a>
-      <a routerLink="/profile" class="btn btn-outline-primary">Profile</a>
-      <button class="btn btn-outline-danger" (click)="logout()">Logout</button>
-    </div>
-  </div>
-
-  <!-- 发布新文章 -->
+<div class="site-shell feed-page"><header class="site-header"><a class="site-brand" routerLink="/main">RiceBook<span>Live</span></a><nav aria-label="Main navigation"><a routerLink="/main" aria-current="page">Feed</a><a routerLink="/chat">Chat rooms</a><a routerLink="/profile" >Profile</a></nav><div class="site-account"><span>{{ S.currentUser()?.name }}</span><button class="btn btn-outline-secondary" (click)="logout()">Logout</button></div></header><div class="page-heading"><h1>Your feed</h1><p>A place for ideas, updates, and conversations.</p></div><div class="feed-layout"><section class="feed-content" aria-label="Feed"><input class="form-control feed-search" placeholder="Search posts or people…" aria-label="Search posts" [(ngModel)]="searchText">  <!-- 发布新文章 -->
   <div class="card mb-4 p-3">
     <textarea
       class="form-control mb-2"
       rows="3"
-      placeholder="Write a new article..."
+      placeholder="Share an idea or an update…" aria-label="New post"
       [(ngModel)]="newPostText"
     ></textarea>
     <div class="d-flex gap-2">
@@ -30,12 +12,10 @@
     </div>
   </div>
 
-  <div class="row">
-    <!-- 主体文章区 -->
-    <div class="col-lg-8">
+<div *ngIf="!filtered().length" class="card empty-state"><h2>{{ searchText ? "No matching posts" : "Start the conversation" }}</h2><p>{{ searchText ? "Try another name or keyword." : "Share your first update above, or follow someone to see their posts." }}</p></div><div class="post-list">
       <div *ngFor="let a of filtered()" class="card mb-3 shadow-sm">
         <div class="card-body">
-          <h5>{{ a.authorName }}</h5>
+          <h5>{{ a.authorName === S.currentUser()?.username ? S.currentUser()?.name : a.authorName }}</h5>
           <p class="text-muted small">{{ a.timestamp }}</p>
           <p>{{ a.body }}</p>
           <img
@@ -89,7 +69,7 @@
             <div class="input-group input-group-sm mt-2">
               <input
                 class="form-control"
-                placeholder="Add a comment..."
+                placeholder="Add a comment..." aria-label="Add a comment"
                 [(ngModel)]="newComments[a.id]"
               />
               <button
@@ -104,8 +84,7 @@
       </div>
     </div>
 
-    <!-- 侧边栏 -->
-    <div class="col-lg-4">
+</section><aside class="feed-sidebar">
       <div class="card p-3">
         <h5>Your Profile</h5>
         <div class="d-flex align-items-center gap-3 mb-3">
@@ -164,6 +143,4 @@
           </button>
         </div>
       </div>
-    </div>
-  </div>
-</div>
+ </aside></div></div>

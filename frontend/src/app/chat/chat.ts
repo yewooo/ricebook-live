@@ -31,5 +31,6 @@ export class ChatComponent implements OnInit,OnDestroy {
   async remove(name:string){try{await this.C.remove(name);this.notice.set(`${name} removed.`)}catch(e){this.C.fail(e)}}
   async older(){try{await this.C.older()}catch(e){this.C.fail(e)}}
   trackMessage(_i:number,m:Message){return m._id}
-  initials(name:string){return name.slice(0,2).toUpperCase()}
+  displayName(name:string){return name === this.S.currentUser()?.username ? this.S.currentUser()?.name || name : name}
+  initials(name:string){return this.displayName(name).slice(0,2).toUpperCase()}
 }

@@ -69,11 +69,15 @@ Browser verification: login → feed → discuss post → open room → share po
 - Single API process; presence and message-rate counters are process-local. Redis adapter and shared throttling would be needed for horizontal scaling.
 - No claim of exactly-once network delivery. Database uniqueness and client-side deduplication make retries idempotent; reconnect reloads the most recent history page.
 - A copied shared-post excerpt is visible to room members, including users outside the author's original following feed. The user explicitly chooses to share it.
-- Google OAuth is optional; five mock-provider protocol tests pass and real Google account sign-in has been verified locally, including refresh and chat access. The local app now uses MongoDB Atlas; real Google login and chat history recovery were also verified against Atlas. Hosted callback verification remains pending. Old MD5 passwords are not migrated; this version uses a clean database and scrypt.
+- Google OAuth is optional; five mock-provider protocol tests pass and real Google account sign-in has been verified locally, including refresh and chat access. The local app now uses MongoDB Atlas; real Google login and chat history recovery were also verified against Atlas. Hosted Google callback, login and session refresh are verified. Old MD5 passwords are not migrated; this version uses a clean database and scrypt.
 - Profile edits are server-validated and submitted atomically. Password changes persist and revoke sessions. Private contact fields are restricted to the owner. Feed post IDs and comment IDs use atomic counters; feed reads are bounded at 500 records and still use local UI pagination. Embedded comments remain a scaling limitation. Image upload controls were removed from the feed because the original backend did not support them.
 - Production package audit reports zero advisories at verification time. The inherited Karma development/test toolchain still reports six high-severity advisories; do not expose its development server publicly.
-- Local benchmarks are measured and documented: 10/50 concurrent clients, three repetitions each. This is not a claim of hosted capacity, real users, or availability/SLA. A Docker production build and restart smoke test pass; live cloud deployment is still pending.
+- Local benchmarks are measured and documented: 10/50 concurrent clients, three repetitions each. This is not a claim of hosted capacity, real users, or availability/SLA. A Docker production build and restart smoke test pass; the app is deployed on Render at https://ricebook-live.onrender.com. Hosted smoke checks pass; hosted capacity is not measured.
 
 See [architecture and interview notes](docs/ARCHITECTURE.md) and [resume wording](docs/RESUME.md).
 
 Deployment and OAuth setup: [deployment runbook](docs/DEPLOYMENT.md), [Google login guide](docs/GOOGLE_LOGIN.md). Verification details: [current results](docs/VERIFICATION.md), [local benchmark](docs/BENCHMARK.md).
+
+## Live demo
+
+[Open RiceBook Live](https://ricebook-live.onrender.com). Free Render instances may sleep when idle.
