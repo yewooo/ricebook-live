@@ -1,6 +1,6 @@
 # AWS demo deployment
 
-Status (2026-10-21): EC2/S3 infrastructure creation submitted; application startup and live S3 verification pending runtime configuration and acceptance checks. Do not claim AWS deployment complete yet.
+Status (2026-10-21): AWS demo is live at https://ricebook-live.18.219.2.85.sslip.io. HTTPS readiness, real Google login, private S3 avatar storage and WebSocket messaging were verified against the deployed service.
 
 ## Resources and cost boundary
 
@@ -17,7 +17,7 @@ No load balancer, NAT Gateway, Elastic IP, Route 53 hosted zone, paid domain, cu
 - The backend uses the AWS SDK credential provider chain and IMDSv2 through the instance role. No persistent AWS access key is created or shipped.
 - `S3_BUCKET` opts into S3 avatar storage. A validated PNG/JPEG/WebP/GIF data URL is decoded, bounded to 500 KiB, signature-checked and written before the profile receives its storage reference. Images are served through authenticated app routes.
 - `COLLECTION_PREFIX=aws_` separates demo collections within the authorized Atlas database, leaving the Render dataset separate.
-- Runtime secrets are intended for one Standard SecureString parameter `/ricebook-live/runtime`, encrypted with the AWS-managed SSM key. Copying existing secrets to AWS requires user authorization.
+- Runtime secrets are stored in one Standard SecureString parameter `/ricebook-live/runtime`, encrypted with the AWS-managed SSM key. Copying existing secrets to AWS requires user authorization.
 
 ## HTTPS and endpoint lifecycle
 
@@ -29,16 +29,26 @@ Review `infra/aws/stack.json`, especially the target account, region and default
 
 The bootstrap waits on private runtime configuration before building/running the app. If configuration is absent, systemd retries once a minute. Updating code after the initial git clone requires a pull/build/restart through SSM; no SSH key is required.
 
-## Acceptance checks still required
+## Acceptance results (2026-10-21)
 
-1. Confirm CloudFormation completion, one instance and 8 GiB disk, Standard CPU credits, Free plan retained.
-2. Confirm the runtime parameter is Standard/SecureString and scoped to the instance role.
-3. Allow only the EC2 public IP in Atlas; add the exact AWS HTTPS callback to Google OAuth.
-4. Verify HTTPS readiness, real sign-in, private-room permissions and realtime history after refresh.
-5. Upload a synthetic avatar, confirm the private S3 object exists, authenticated image read succeeds and anonymous access is denied.
-6. Reboot the application and verify history/session recovery, without confusing this with multi-instance availability.
-7. Review credits/cost activity; do not claim spending figures are real-time.
+- CloudFormation completed; one t3.micro with 8 GiB encrypted disk and Standard CPU credits. No paid-plan upgrade was performed.
+- Runtime configuration is Standard/SecureString; Atlas allows the EC2 address /32 and the exact Google callback is saved.
+- Nine low-volume live acceptance checks passed: HTTPS/Atlas readiness, registration with Secure/HttpOnly cookie, S3 avatar reference, authenticated image retrieval, anonymous proxy denial, direct S3 denial (403), WebSocket delivery with idempotent retry, persisted history read, and logout revocation.
+- Real Google account sign-in reached the feed. After restarting the application container, HTTPS readiness recovered and a browser reload retained the Google session. This is a container restart check, not an EC2 reboot or availability benchmark.
+- Backend tests: 36 passed, including signature/size validation and S3 upload failure behavior.
+- No AWS load test, multi-instance failover or long-duration availability test was performed. Billing/credit usage can lag and was not treated as real-time cost evidence.
 
 ## Cleanup
 
 The media bucket has a Retain policy to protect user uploads. Deleting a stack will not delete that bucket or its data. Terminating an instance is irreversible and must be explicitly authorized; root disk deletion is enabled on termination. Identify and review retained resources and CloudFormation template storage separately. Stopping EC2 alone does not release disk storage.
+
+## Provisioned environment
+
+- Region: `us-east-2`
+- Stack: `ricebook-live-aws`
+- Instance: `i-0fe1e13c5dc8a1ea8`
+- Initial public IPv4: `18.219.2.85`
+- Verified HTTPS origin: `https://ricebook-live.18.219.2.85.sslip.io`
+- Private media bucket: `ricebook-live-media-172679943008-us-east-2`
+- SSM instance management confirmed; SSH remains closed.
+- The runtime parameter was created as Standard / SecureString, using `alias/aws/ssm`.
