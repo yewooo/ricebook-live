@@ -1,0 +1,199 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "RiceBook single-instance Free-plan demo: EC2, private S3 and scoped instance role; no paid-plan upgrade.",
+  "Parameters": {
+    "LatestAmi": {
+      "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+      "Default": "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
+    }
+  },
+  "Resources": {
+    "MediaBucket": {
+      "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BucketName": "ricebook-live-media-172679943008-us-east-2",
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "IgnorePublicAcls": true,
+          "BlockPublicPolicy": true,
+          "RestrictPublicBuckets": true
+        },
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        },
+        "OwnershipControls": {
+          "Rules": [
+            {
+              "ObjectOwnership": "BucketOwnerEnforced"
+            }
+          ]
+        }
+      }
+    },
+    "AppRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ec2.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        ],
+        "Policies": [
+          {
+            "PolicyName": "ProjectMediaAndRuntime",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:PutObject",
+                    "s3:GetObject"
+                  ],
+                  "Resource": "arn:aws:s3:::ricebook-live-media-172679943008-us-east-2/avatars/*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ssm:GetParameter"
+                  ],
+                  "Resource": "arn:aws:ssm:us-east-2:172679943008:parameter/ricebook-live/runtime"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "AppProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "AppRole"
+          }
+        ]
+      }
+    },
+    "WebSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "RiceBook HTTPS and ACME only; administration via SSM",
+        "VpcId": "vpc-0c2c07526eb1013e7",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 80,
+            "ToPort": 80,
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 443,
+            "ToPort": 443,
+            "CidrIp": "0.0.0.0/0"
+          }
+        ]
+      }
+    },
+    "AppInstance": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": {
+          "Ref": "LatestAmi"
+        },
+        "InstanceType": "t3.micro",
+        "IamInstanceProfile": {
+          "Ref": "AppProfile"
+        },
+        "SecurityGroupIds": [
+          {
+            "Ref": "WebSecurityGroup"
+          }
+        ],
+        "CreditSpecification": {
+          "CPUCredits": "standard"
+        },
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "VolumeSize": 8,
+              "VolumeType": "gp3",
+              "Encrypted": true,
+              "DeleteOnTermination": true
+            }
+          }
+        ],
+        "UserData": "IyEvYmluL2Jhc2gKc2V0IC1ldW8gcGlwZWZhaWwKZG5mIGluc3RhbGwgLXkgZG9ja2VyIGdpdApzeXN0ZW1jdGwgZW5hYmxlIC0tbm93IGRvY2tlcgppZiBbICEgLWYgL3N3YXBmaWxlIF07IHRoZW4KIGZhbGxvY2F0ZSAtbCAyRyAvc3dhcGZpbGUKIGNobW9kIDYwMCAvc3dhcGZpbGUKIG1rc3dhcCAvc3dhcGZpbGUKIHN3YXBvbiAvc3dhcGZpbGUKIGVjaG8gJy9zd2FwZmlsZSBub25lIHN3YXAgc3cgMCAwJyA+PiAvZXRjL2ZzdGFiCmZpCm1rZGlyIC1wIC9vcHQvcmljZWJvb2stbGl2ZQpjZCAvb3B0L3JpY2Vib29rLWxpdmUKZ2l0IGNsb25lIGh0dHBzOi8vZ2l0aHViLmNvbS95ZXdvb28vcmljZWJvb2stbGl2ZS5naXQgc291cmNlCmNhdCA+IC9vcHQvcmljZWJvb2stbGl2ZS9zdGFydC5zaCA8PCdTVEFSVCcKIyEvYmluL2Jhc2gKc2V0IC1ldW8gcGlwZWZhaWwKY2QgL29wdC9yaWNlYm9vay1saXZlCnVtYXNrIDA3Nwphd3Mgc3NtIGdldC1wYXJhbWV0ZXIgLS1uYW1lIC9yaWNlYm9vay1saXZlL3J1bnRpbWUgLS13aXRoLWRlY3J5cHRpb24gLS1yZWdpb24gdXMtZWFzdC0yIC0tcXVlcnkgUGFyYW1ldGVyLlZhbHVlIC0tb3V0cHV0IHRleHQgPiBydW50aW1lLmVudgpUT0tFTj0kKGN1cmwgLWZzUyAtWCBQVVQgLUggJ1gtYXdzLWVjMi1tZXRhZGF0YS10b2tlbi10dGwtc2Vjb25kczogNjAnIGh0dHA6Ly8xNjkuMjU0LjE2OS4yNTQvbGF0ZXN0L2FwaS90b2tlbikKUFVCTElDX0lQPSQoY3VybCAtZnNTIC1IICJYLWF3cy1lYzItbWV0YWRhdGEtdG9rZW46ICRUT0tFTiIgaHR0cDovLzE2OS4yNTQuMTY5LjI1NC9sYXRlc3QvbWV0YS1kYXRhL3B1YmxpYy1pcHY0KQpET01BSU49cmljZWJvb2stbGl2ZS4kUFVCTElDX0lQLnNzbGlwLmlvCkJVQ0tFVD1yaWNlYm9vay1saXZlLW1lZGlhLTE3MjY3OTk0MzAwOC11cy1lYXN0LTIKIyBGaXhlZCBkZXBsb3ltZW50IHZhbHVlcyBvdmVycmlkZSBsb2NhbC1vcmlnaW4gc2V0dGluZ3MgaW4gdGhlIHByaXZhdGUgcGFyYW1ldGVyLgpwcmludGYgJ1xuTk9ERV9FTlY9cHJvZHVjdGlvblxuVFJVU1RfUFJPWFk9MVxuUE9SVD0zMDAwXG5XRUJfUk9PVD0vYXBwL3dlYlxuQVdTX1JFR0lPTj11cy1lYXN0LTJcblMzX0JVQ0tFVD0lc1xuRlJPTlRFTkRfT1JJR0lOPWh0dHBzOi8vJXNcbkdPT0dMRV9DQUxMQkFDS19VUkw9aHR0cHM6Ly8lcy9hcGkvYXV0aC9nb29nbGUvY2FsbGJhY2tcbicgIiRCVUNLRVQiICIkRE9NQUlOIiAiJERPTUFJTiIgPj4gcnVudGltZS5lbnYKaWYgISBkb2NrZXIgaW1hZ2UgaW5zcGVjdCByaWNlYm9vay1saXZlOmF3cyA+L2Rldi9udWxsIDI+JjE7IHRoZW4KIGRvY2tlciBidWlsZCAtdCByaWNlYm9vay1saXZlOmF3cyBzb3VyY2UKZmkKZG9ja2VyIHJtIC1mIHJpY2Vib29rLWFwcCA+L2Rldi9udWxsIDI+JjEgfHwgdHJ1ZQpkb2NrZXIgcnVuIC1kIC0tbmFtZSByaWNlYm9vay1hcHAgLS1yZXN0YXJ0IHVubGVzcy1zdG9wcGVkIC0tbmV0d29yayBob3N0IC0tZW52LWZpbGUgcnVudGltZS5lbnYgLS1sb2ctb3B0IG1heC1zaXplPTVtIC0tbG9nLW9wdCBtYXgtZmlsZT0yIHJpY2Vib29rLWxpdmU6YXdzCnByaW50ZiAnJXMge1xuIHJldmVyc2VfcHJveHkgMTI3LjAuMC4xOjMwMDBcbn1cbicgIiRET01BSU4iID4gQ2FkZHlmaWxlCmRvY2tlciBybSAtZiByaWNlYm9vay1wcm94eSA+L2Rldi9udWxsIDI+JjEgfHwgdHJ1ZQpkb2NrZXIgcnVuIC1kIC0tbmFtZSByaWNlYm9vay1wcm94eSAtLXJlc3RhcnQgdW5sZXNzLXN0b3BwZWQgLS1uZXR3b3JrIGhvc3QgLXYgL29wdC9yaWNlYm9vay1saXZlL0NhZGR5ZmlsZTovZXRjL2NhZGR5L0NhZGR5ZmlsZTpybyAtdiByaWNlYm9vay1jYWRkeS1kYXRhOi9kYXRhIC12IHJpY2Vib29rLWNhZGR5LWNvbmZpZzovY29uZmlnIC0tbG9nLW9wdCBtYXgtc2l6ZT01bSAtLWxvZy1vcHQgbWF4LWZpbGU9MiBjYWRkeToyClNUQVJUCmNobW9kIDcwMCAvb3B0L3JpY2Vib29rLWxpdmUvc3RhcnQuc2gKY2F0ID4gL2V0Yy9zeXN0ZW1kL3N5c3RlbS9yaWNlYm9vay1saXZlLnNlcnZpY2UgPDwnU0VSVklDRScKW1VuaXRdCkRlc2NyaXB0aW9uPVJpY2VCb29rIExpdmUgYm9vdHN0cmFwIGFuZCBjb250YWluZXJzCkFmdGVyPW5ldHdvcmstb25saW5lLnRhcmdldCBkb2NrZXIuc2VydmljZQpXYW50cz1uZXR3b3JrLW9ubGluZS50YXJnZXQKUmVxdWlyZXM9ZG9ja2VyLnNlcnZpY2UKW1NlcnZpY2VdClR5cGU9b25lc2hvdApSZW1haW5BZnRlckV4aXQ9eWVzCldvcmtpbmdEaXJlY3Rvcnk9L29wdC9yaWNlYm9vay1saXZlCkV4ZWNTdGFydD0vb3B0L3JpY2Vib29rLWxpdmUvc3RhcnQuc2gKUmVzdGFydD1vbi1mYWlsdXJlClJlc3RhcnRTZWM9NjAKVGltZW91dFN0YXJ0U2VjPTE4MDAKW0luc3RhbGxdCldhbnRlZEJ5PW11bHRpLXVzZXIudGFyZ2V0ClNFUlZJQ0UKc3lzdGVtY3RsIGRhZW1vbi1yZWxvYWQKc3lzdGVtY3RsIGVuYWJsZSAtLW5vdyByaWNlYm9vay1saXZlCg==",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "ricebook-live-aws"
+          }
+        ],
+        "LaunchTemplate": {
+          "LaunchTemplateId": {
+            "Ref": "InstanceTemplate"
+          },
+          "Version": {
+            "Fn::GetAtt": [
+              "InstanceTemplate",
+              "LatestVersionNumber"
+            ]
+          }
+        }
+      }
+    },
+    "InstanceTemplate": {
+      "Type": "AWS::EC2::LaunchTemplate",
+      "Properties": {
+        "LaunchTemplateData": {
+          "MetadataOptions": {
+            "HttpTokens": "required",
+            "HttpEndpoint": "enabled",
+            "HttpPutResponseHopLimit": 1
+          }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "InstanceId": {
+      "Value": {
+        "Ref": "AppInstance"
+      }
+    },
+    "PublicIP": {
+      "Value": {
+        "Fn::GetAtt": [
+          "AppInstance",
+          "PublicIp"
+        ]
+      }
+    },
+    "MediaBucket": {
+      "Value": {
+        "Ref": "MediaBucket"
+      }
+    }
+  }
+}

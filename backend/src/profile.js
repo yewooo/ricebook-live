@@ -14,7 +14,7 @@ function validate(patch){
  for(const [key,value] of Object.entries(patch))if(!rules[key] || !rules[key](value))throw fail(`Invalid ${key}.`)
  return patch
 }
-module.exports = app => {
+module.exports = (app,mediaStore) => {
  app.get('/profile',isLoggedIn,async(req,res)=>{
   const profile=await Profile.findOne({username:req.username}).select('-_id -__v').lean()
   if(!profile)return res.status(404).send({error:'Profile not found.'})
@@ -22,6 +22,7 @@ module.exports = app => {
  })
  app.put('/profile',isLoggedIn,async(req,res)=>{
   const patch=validate(req.body)
+  if(patch.avatar && mediaStore)patch.avatar=await mediaStore.saveAvatar(req.username,patch.avatar)
   const profile=await Profile.findOneAndUpdate({username:req.username},{$set:patch},{new:true}).select('-_id -__v').lean()
   res.send(profile)
  })
@@ -36,6 +37,7 @@ module.exports = app => {
   app.get(`/${field}`,isLoggedIn,get);app.get(`/${field}/:user`,isLoggedIn,get)
   if(field!=='dob')app.put(`/${field}`,isLoggedIn,async(req,res)=>{
    const patch=validate({[field]:req.body[field]})
+   if(field==='avatar' && mediaStore)patch.avatar=await mediaStore.saveAvatar(req.username,patch.avatar)
    await Profile.updateOne({username:req.username},{$set:patch})
    res.send({username:req.username,...patch})
   })

@@ -37,7 +37,9 @@ function createApp(options={}) {
         })
     }
     require('./auth')(app,options)
-    require('./profile')(app)
+    const mediaStore = options.mediaStore === undefined ? require('./media').createMediaStore() : options.mediaStore
+    require('./media').mediaRoutes(app,mediaStore)
+    require('./profile')(app,mediaStore)
     require('./articles')(app)
     require('./following')(app)
     require('./chat').chatRoutes(app)
