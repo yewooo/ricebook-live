@@ -1,5 +1,8 @@
 // src/models.js
 const mongoose = require('mongoose')
+const collectionPrefix = process.env.COLLECTION_PREFIX || ''
+if(!/^[a-z0-9_]{0,24}$/.test(collectionPrefix))throw new Error('Invalid collection prefix.')
+const scopedModel = (name,schema) => mongoose.model(name,schema,collectionPrefix ? collectionPrefix+mongoose.pluralize()(name) : undefined)
 
 /**
  * ---------- User ----------
@@ -25,7 +28,7 @@ const userSchema = new mongoose.Schema({
     googleEmail: String,
 })
 
-const User = mongoose.model('User', userSchema)
+const User = scopedModel('User', userSchema)
 
 /**
  * ---------- Profile ----------
@@ -42,7 +45,7 @@ const profileSchema = new mongoose.Schema({
     avatar: String,
 })
 
-const Profile = mongoose.model('Profile', profileSchema)
+const Profile = scopedModel('Profile', profileSchema)
 
 /**
  * ---------- Article ----------
@@ -64,7 +67,7 @@ const articleSchema = new mongoose.Schema({
 })
 
 articleSchema.index({ author: 1, date: -1, pid: -1 })
-const Article = mongoose.model('Article', articleSchema)
+const Article = scopedModel('Article', articleSchema)
 
 /**
  * ---------- Following ----------
@@ -77,7 +80,7 @@ const followingSchema = new mongoose.Schema({
     following: [String],
 })
 
-const Following = mongoose.model('Following', followingSchema)
+const Following = scopedModel('Following', followingSchema)
 
 /**
  * ---------- 导出 ----------
@@ -111,10 +114,10 @@ const messageSchema = new mongoose.Schema({
 }, { timestamps: true })
 messageSchema.index({ room: 1, _id: -1 })
 messageSchema.index({ room: 1, sender: 1, clientId: 1 }, { unique: true })
-module.exports.Session = mongoose.model('Session', sessionSchema)
-module.exports.Room = mongoose.model('Room', roomSchema)
-module.exports.Message = mongoose.model('Message', messageSchema)
+module.exports.Session = scopedModel('Session', sessionSchema)
+module.exports.Room = scopedModel('Room', roomSchema)
+module.exports.Message = scopedModel('Message', messageSchema)
 const counterSchema = new mongoose.Schema({ _id: String, value: Number })
-module.exports.Counter = mongoose.model('Counter', counterSchema)
+module.exports.Counter = scopedModel('Counter', counterSchema)
 
-module.exports.OAuthState = mongoose.model('OAuthState',new mongoose.Schema({ _id:String, expiresAt:{type:Date,expires:0} }))
+module.exports.OAuthState = scopedModel('OAuthState',new mongoose.Schema({ _id:String, expiresAt:{type:Date,expires:0} }))
